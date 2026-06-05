@@ -1,0 +1,34 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // User Profiles
+    match /users/{userId} {
+      // Jeder eingeloggte User kann alle Profile lesen (nötig für Partner-Suche)
+      allow read: if request.auth != null;
+      // Nur eigenes Profil schreiben
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Wishes
+    match /wishes/{wishId} {
+      // Lesen: Nur wenn eingeloggt UND Teil des Paares
+      allow read: if request.auth != null
+        && resource.data.coupleId != null
+        && request.auth.uid in resource.data.coupleId.split('_');
+
+      // Erstellen: Eingeloggt, createdBy muss eigene UID sein
+      allow create: if request.auth != null
+        && request.resource.data.createdBy == request.auth.uid;
+
+      // Update: Nur Creator oder Partner (für Status-Änderungen)
+      allow update: if request.auth != null
+        && request.auth.uid in resource.data.coupleId.split('_');
+
+      // Löschen: Nur Creator
+      allow delete: if request.auth != null
+        && resource.data.createdBy == request.auth.uid;
+    }
+  }
+}
