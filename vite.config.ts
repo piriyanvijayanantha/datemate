@@ -3,5 +3,5 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/datemate/',
+  base: '/', // Custom Domain (datemate.piriyan.dev) läuft auf Root
 })
