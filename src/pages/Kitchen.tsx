@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Pencil, Trash2, ExternalLink, X, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -11,6 +11,7 @@ import {
   addDishToList,
   updateDishInList,
   removeDishFromList,
+  dedupeAllergies,
 } from '../services/foodProfile';
 import AppHeader from '../components/AppHeader';
 import BottomNav from '../components/BottomNav';
@@ -26,6 +27,7 @@ export default function Kitchen() {
   const [editingDish, setEditingDish] = useState<FavoriteDish | null>(null);
   const [allergyInput, setAllergyInput] = useState('');
   const [notesDraft, setNotesDraft] = useState('');
+  const notesInitialized = useRef(false);
 
   // Kein Partner → zur Verknüpfung (gleicher Guard wie Dashboard)
   useEffect(() => {
@@ -37,7 +39,10 @@ export default function Kitchen() {
     if (!profile?.uid) return;
     return subscribeToProfile(profile.uid, (p) => {
       setMe(p);
-      setNotesDraft(p?.foodNotes ?? '');
+      if (!notesInitialized.current && p) {
+        setNotesDraft(p.foodNotes ?? '');
+        notesInitialized.current = true;
+      }
     });
   }, [profile?.uid]);
 
@@ -50,24 +55,37 @@ export default function Kitchen() {
   if (!profile) return null;
   const uid = profile.uid;
 
-  const myAllergies = me?.allergies ?? [];
+  const myAllergies = dedupeAllergies(me?.allergies ?? []);
   const myDishes = me?.favoriteDishes ?? [];
+  const partnerAllergies = dedupeAllergies(partner?.allergies ?? []);
 
   const handleAddAllergy = async () => {
     const value = allergyInput.trim();
     if (!value) return;
     setAllergyInput('');
-    await saveAllergies(uid, [...myAllergies, value]);
+    try {
+      await saveAllergies(uid, [...myAllergies, value]);
+    } catch {
+      toast.error('Fehler beim Speichern');
+    }
   };
 
   const handleRemoveAllergy = async (tag: string) => {
-    await saveAllergies(uid, myAllergies.filter((t) => t !== tag));
+    try {
+      await saveAllergies(uid, myAllergies.filter((t) => t !== tag));
+    } catch {
+      toast.error('Fehler beim Speichern');
+    }
   };
 
   const handleSaveNotes = async () => {
     if (notesDraft === (me?.foodNotes ?? '')) return;
-    await saveFoodNotes(uid, notesDraft);
-    toast.success('Notiz gespeichert');
+    try {
+      await saveFoodNotes(uid, notesDraft);
+      toast.success('Notiz gespeichert');
+    } catch {
+      toast.error('Fehler beim Speichern');
+    }
   };
 
   const handleSaveDish = async (values: { name: string; note?: string; sourceUrl?: string }) => {
@@ -80,8 +98,12 @@ export default function Kitchen() {
 
   const handleDeleteDish = async (id: string) => {
     if (!confirm('Gericht wirklich löschen?')) return;
-    await saveDishes(uid, removeDishFromList(myDishes, id));
-    toast.success('Gelöscht');
+    try {
+      await saveDishes(uid, removeDishFromList(myDishes, id));
+      toast.success('Gelöscht');
+    } catch {
+      toast.error('Fehler beim Speichern');
+    }
   };
 
   return (
@@ -104,7 +126,7 @@ export default function Kitchen() {
               {myAllergies.map((tag) => (
                 <span key={tag} className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-400">
                   {tag}
-                  <button onClick={() => handleRemoveAllergy(tag)} className="hover:text-white">
+                  <button onClick={() => handleRemoveAllergy(tag)} aria-label={`${tag} entfernen`} className="hover:text-white">
                     <X className="w-3 h-3" />
                   </button>
                 </span>
@@ -197,10 +219,10 @@ export default function Kitchen() {
               <AlertTriangle className="w-4 h-4" /> Allergien
             </h3>
             <div className="flex flex-wrap gap-2">
-              {(partner?.allergies ?? []).length === 0 && (
+              {partnerAllergies.length === 0 && (
                 <span className="text-sm text-[var(--color-text-muted)]">Keine eingetragen</span>
               )}
-              {(partner?.allergies ?? []).map((tag) => (
+              {partnerAllergies.map((tag) => (
                 <span key={tag} className="text-xs px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 font-medium">
                   {tag}
                 </span>
