@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Plus, LogOut, Link2, Filter, X, Search } from 'lucide-react';
+import { Plus, Filter, X, Search } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { subscribeToWishes } from '../services/firestore';
 import { Wish, WishCategory, CATEGORY_CONFIG } from '../types';
 import WishCard from '../components/WishCard';
 import WishForm from '../components/WishForm';
+import AppHeader from '../components/AppHeader';
+import BottomNav from '../components/BottomNav';
 
 export default function Dashboard() {
-  const { profile, signOut } = useAuth();
+  const { profile } = useAuth();
   const navigate = useNavigate();
   const [wishes, setWishes] = useState<Wish[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -38,8 +40,6 @@ export default function Dashboard() {
 
   if (!profile) return null;
 
-  const isBf = profile.role === 'boyfriend';
-
   // Filtern
   const filtered = wishes.filter((w) => {
     if (activeCategory !== 'all' && w.category !== activeCategory) return false;
@@ -62,36 +62,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen pb-24">
-      {/* Header */}
-      <header className="sticky top-0 z-30 glass">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <Heart className="w-5 h-5 text-rose-500" fill="currentColor" />
-            <span className="font-display text-lg text-white">DateMate</span>
-            <span className={`text-xs px-2 py-0.5 rounded-full ${
-              isBf ? 'bg-blue-500/15 text-blue-400' : 'bg-rose-500/15 text-rose-400'
-            }`}>
-              {profile.displayName}
-            </span>
-          </div>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => navigate('/link')}
-              className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-white hover:bg-white/5 transition-colors"
-              title="Partner"
-            >
-              <Link2 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={signOut}
-              className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-white hover:bg-white/5 transition-colors"
-              title="Abmelden"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </header>
+      <AppHeader />
 
       <main className="max-w-2xl mx-auto px-4 pt-4">
         {/* Search & Filter Bar */}
@@ -239,7 +210,7 @@ export default function Dashboard() {
       {/* FAB */}
       <button
         onClick={() => { setEditingWish(null); setShowForm(true); }}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl shadow-lg shadow-rose-500/25 flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-20"
+        className="fixed bottom-20 right-6 w-14 h-14 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl shadow-lg shadow-rose-500/25 flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-20"
       >
         <Plus className="w-6 h-6" />
       </button>
@@ -253,6 +224,7 @@ export default function Dashboard() {
           onClose={() => { setShowForm(false); setEditingWish(null); }}
         />
       )}
+      <BottomNav />
     </div>
   );
 }
