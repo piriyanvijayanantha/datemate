@@ -1,4 +1,6 @@
-import { FavoriteDish } from '../types';
+import { doc, onSnapshot, updateDoc, Unsubscribe } from 'firebase/firestore';
+import { db } from '../firebase';
+import { FavoriteDish, UserProfile } from '../types';
 
 /** Trim, drop empties, dedupe case-insensitively (keeps first occurrence's form). */
 export function dedupeAllergies(tags: string[]): string[] {
@@ -42,4 +44,31 @@ export function updateDishInList(dishes: FavoriteDish[], updated: FavoriteDish):
 /** Remove the dish with the matching id. */
 export function removeDishFromList(dishes: FavoriteDish[], dishId: string): FavoriteDish[] {
   return dishes.filter((d) => d.id !== dishId);
+}
+
+const USERS_COL = 'users';
+
+/** Realtime listener for a single user profile (own or partner). */
+export function subscribeToProfile(
+  uid: string,
+  callback: (profile: UserProfile | null) => void,
+): Unsubscribe {
+  return onSnapshot(doc(db, USERS_COL, uid), (snap) => {
+    callback(snap.exists() ? (snap.data() as UserProfile) : null);
+  });
+}
+
+/** Save deduped allergy tags on the user's own profile. */
+export async function saveAllergies(uid: string, tags: string[]): Promise<void> {
+  await updateDoc(doc(db, USERS_COL, uid), { allergies: dedupeAllergies(tags) });
+}
+
+/** Save the free-text food notes on the user's own profile. */
+export async function saveFoodNotes(uid: string, notes: string): Promise<void> {
+  await updateDoc(doc(db, USERS_COL, uid), { foodNotes: notes });
+}
+
+/** Persist the favorite-dishes array on the user's own profile. */
+export async function saveDishes(uid: string, dishes: FavoriteDish[]): Promise<void> {
+  await updateDoc(doc(db, USERS_COL, uid), { favoriteDishes: dishes });
 }
