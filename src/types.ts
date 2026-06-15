@@ -10,6 +10,14 @@ export type WishCategory =
 
 export type WishStatus = 'open' | 'planned' | 'done';
 
+export interface FavoriteDish {
+  id: string;          // crypto.randomUUID()
+  name: string;
+  note?: string;       // z.B. "am liebsten scharf, ohne Koriander"
+  sourceUrl?: string;  // Rezept / TikTok / Insta
+  createdAt: number;
+}
+
 export interface UserProfile {
   uid: string;
   email: string;
@@ -17,6 +25,9 @@ export interface UserProfile {
   role: Role;
   partnerCode: string;    // Code zum Teilen mit Partner
   partnerId?: string;     // UID des Partners (nach Verknüpfung)
+  allergies?: string[];        // Tag-Chips, z.B. ["Nüsse", "Laktose"]
+  foodNotes?: string;          // Freitext "sonstige wichtige Sachen"
+  favoriteDishes?: FavoriteDish[];
   createdAt: number;
 }
 

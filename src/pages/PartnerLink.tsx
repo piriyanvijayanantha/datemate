@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Link2, Copy, Check, ArrowRight } from 'lucide-react';
+import { Link2, Copy, Check, ArrowRight, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
 export default function PartnerLink() {
-  const { profile, linkPartner } = useAuth();
+  const { profile, linkPartner, signOut } = useAuth();
   const navigate = useNavigate();
   const [code, setCode] = useState('');
   const [copied, setCopied] = useState(false);
@@ -26,6 +26,12 @@ export default function PartnerLink() {
                 className="px-6 py-2.5 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-xl transition-colors"
             >
               Zum Dashboard
+            </button>
+            <button
+                onClick={signOut}
+                className="mx-auto flex items-center gap-1.5 text-sm text-[var(--color-text-muted)] hover:text-white transition-colors"
+            >
+              <LogOut className="w-4 h-4" /> Abmelden
             </button>
           </div>
         </div>
@@ -59,6 +65,13 @@ export default function PartnerLink() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
+      <button
+        onClick={signOut}
+        className="fixed top-4 right-4 z-20 p-2 rounded-lg text-[var(--color-text-muted)] hover:text-white hover:bg-white/5 transition-colors"
+        title="Abmelden"
+      >
+        <LogOut className="w-5 h-5" />
+      </button>
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-rose-500/8 rounded-full blur-[100px]" />
       </div>
