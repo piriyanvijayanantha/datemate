@@ -21,7 +21,7 @@ export interface DishInput {
   sourceUrl?: string;
 }
 
-/** Append a new dish. idFn/nowFn are injectable for deterministic tests. */
+/** Append a new dish (trims name and optional fields). idFn/nowFn are injectable for deterministic tests. */
 export function addDishToList(
   dishes: FavoriteDish[],
   input: DishInput,
@@ -34,7 +34,7 @@ export function addDishToList(
   return [...dishes, dish];
 }
 
-/** Replace the dish with the matching id. */
+/** Replace the dish with the matching id; returns the list unchanged if no id matches. */
 export function updateDishInList(dishes: FavoriteDish[], updated: FavoriteDish): FavoriteDish[] {
   return dishes.map((d) => (d.id === updated.id ? updated : d));
 }
