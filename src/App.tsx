@@ -3,6 +3,7 @@ import { useAuth } from './contexts/AuthContext';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import PartnerLink from './pages/PartnerLink';
+import Kitchen from './pages/Kitchen';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -32,6 +33,7 @@ export default function App() {
       <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
       <Route path="/link" element={<ProtectedRoute><PartnerLink /></ProtectedRoute>} />
       <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/kitchen" element={<ProtectedRoute><Kitchen /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
