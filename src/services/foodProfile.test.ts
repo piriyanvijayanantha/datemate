@@ -4,6 +4,7 @@ import {
   addDishToList,
   updateDishInList,
   removeDishFromList,
+  cleanDish,
 } from './foodProfile';
 import { FavoriteDish } from '../types';
 
@@ -82,5 +83,26 @@ describe('removeDishFromList', () => {
     const result = removeDishFromList(list, 'z');
     expect(result).toHaveLength(2);
     expect(result).toEqual(list);
+  });
+});
+
+describe('cleanDish', () => {
+  it('removes keys whose value is undefined', () => {
+    const result = cleanDish({
+      id: 'a',
+      name: 'X',
+      createdAt: 1,
+      note: undefined,
+      sourceUrl: undefined,
+    } as unknown as FavoriteDish);
+    expect(result).toEqual({ id: 'a', name: 'X', createdAt: 1 });
+    expect('note' in result).toBe(false);
+    expect('sourceUrl' in result).toBe(false);
+  });
+
+  it('keeps present optional fields', () => {
+    const result = cleanDish({ id: 'a', name: 'X', createdAt: 1, note: 'scharf' });
+    expect(result).toEqual({ id: 'a', name: 'X', createdAt: 1, note: 'scharf' });
+    expect(result.note).toBe('scharf');
   });
 });

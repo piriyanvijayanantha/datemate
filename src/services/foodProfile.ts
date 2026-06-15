@@ -46,6 +46,13 @@ export function removeDishFromList(dishes: FavoriteDish[], dishId: string): Favo
   return dishes.filter((d) => d.id !== dishId);
 }
 
+/** Remove keys whose value is undefined (Firestore rejects undefined, even nested in arrays). */
+export function cleanDish(dish: FavoriteDish): FavoriteDish {
+  return Object.fromEntries(
+    Object.entries(dish).filter(([, v]) => v !== undefined),
+  ) as unknown as FavoriteDish;
+}
+
 const USERS_COL = 'users';
 
 /** Realtime listener for a single user profile (own or partner). */
@@ -70,5 +77,5 @@ export async function saveFoodNotes(uid: string, notes: string): Promise<void> {
 
 /** Persist the favorite-dishes array on the user's own profile. */
 export async function saveDishes(uid: string, dishes: FavoriteDish[]): Promise<void> {
-  await updateDoc(doc(db, USERS_COL, uid), { favoriteDishes: dishes });
+  await updateDoc(doc(db, USERS_COL, uid), { favoriteDishes: dishes.map(cleanDish) });
 }
